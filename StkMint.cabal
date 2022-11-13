@@ -1,0 +1,56 @@
+cabal-version:      2.4
+name:               StkMint
+version:            0.1.0.0
+synopsis:           Minting contracts for StakingDAO NFTs
+
+-- A longer description of the package.
+-- description:
+homepage:           https://stakingdao.ai
+
+-- A URL where users can report bugs.
+-- bug-reports:
+license:            NONE
+author:             Rhys Morgan
+maintainer:         stoiccryptocurrency@gmail.com
+
+-- A copyright notice.
+-- copyright:
+-- category:
+extra-source-files: CHANGELOG.md
+
+library
+    exposed-modules:      TestEnv
+                        
+
+    -- Modules included in this library but not exported.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    aeson
+                    , base ^>=4.14.1.0
+                    , bytestring
+                    , cardano-api
+                    , containers
+                    , data-default
+                    , freer-extras
+                    , playground-common
+                    , plutus-contract
+                    , plutus-ledger
+                    , plutus-ledger-api
+                    , plutus-ledger-constraints
+                    , plutus-tx-plugin
+                    , plutus-tx
+                    , random 
+                    , serialise
+                    , text
+                    , lens
+                    , base16-bytestring
+                    , cardano-ledger-alonzo
+
+
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+    ghc-options: -Wall -fobject-code -fno-ignore-interface-pragmas -fno-omit-interface-pragmas -fno-strictness -fno-spec-constr -fno-specialise 
+
