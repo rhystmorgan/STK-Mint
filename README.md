@@ -3,8 +3,15 @@ Emurgo Project for StakingDAO NFT Minting using CIP-68
 
 ## What Does The NFT Mint Do?
 
-Send a payment to the Script and the script mints 2 tokens in line with the CIP-68 specification
-1 of which is sent to the treasury address (will be sent to a locking script in the future)
+Send a payment to the Request Script which mints 2 tokens in line with the CIP-68 specification
+
+Refernce Token - Prefix (100) - is sent to the Locking Script (only accessible by the Treasury Wallet)
+
+User Token - Prefix (222) - is sent to the user's wallet
+
+The Request Mint script uses a Thread Token, minted by the Treasury Wallet, to hold the count and other metadata in the Datum 
+
+The Minting Script validates that the Tx includes the Thread Token 
 
 ## Structure Of Folders
 
