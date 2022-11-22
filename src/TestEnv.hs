@@ -75,10 +75,9 @@ data ThreadParams = TP
     , tpRequestSc :: Validator
     } deriving (Generic, FromJSON, ToJSON)
 
-type LockingSchema = 
-    Endpoint "unlock" ()
-
-
+--------------------------------------
+-- Helper Functions For Script Info -- 
+--------------------------------------
 
 reqAddress :: Ledger.Address
 reqAddress = Req.requestAddress $ ContractInfo{lockingSc = Lock.lockingAddress}
@@ -106,6 +105,10 @@ getTokenNameNft x = Class.stringToBuiltinByteString ("(222)StakingDAO NFT #" ++ 
 
 integerToString :: Integer -> String
 integerToString x = show $ x
+
+---------------------
+-- Off-Chain Logic -- 
+---------------------
 
 thread :: ThreadParams -> Contract w ThreadSchema Text ()
 thread (TP tpAddress tpRequestSc) = do 
@@ -200,6 +203,10 @@ request (RP rpAddress rpTreasury) = do
         
         f :: ChainIndexTxOut -> Bool
         f o = assetClassValueOf (_ciTxOutValue $ o) (assetClass Thread.threadSymbol (TokenName "Thread")) == 1
+
+------------------------------------
+-- Endpoint Calls & Emulator Info --
+------------------------------------
 
 endpoints :: Contract () RequestSchema Text ()
 endpoints = awaitPromise request' >> endpoints
