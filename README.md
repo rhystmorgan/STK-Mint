@@ -34,12 +34,3 @@ Utils - Has some Inlinable Functions
 Random - Does the sorting to select an NFT to mint
 
 NFTs - List of NFTs (just token Names now for Human readable testing, with IPFS Hash)
-
-## Need To Do -- Completed for V2 along with other improvements
-
-Create vesting contract to be used as a locking script for (100) reference NFTs instead of Treasury (knownWallet 1)
--- Only Accessible by the Treasury Wallet --
-
-Fix the Script Address Tx issue - Consume all UTxOs at RequestScript Address?
-
-Add more Validatiion measures to the Minting Script - currently ONLY checks for a script in the TxOut
