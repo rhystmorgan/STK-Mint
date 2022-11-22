@@ -14,47 +14,22 @@
 
 module MintPolicy2 where
 
-import           Control.Monad hiding (fmap)
 import           Data.Aeson (ToJSON, FromJSON)
-import           Data.Map as Map 
-import           Data.Text (Text)
-import           Data.Void (Void)
 import           GHC.Generics (Generic)
-
-import           Plutus.Contract as Contract
-import           Plutus.Trace.Emulator as Emulator
-
 import qualified PlutusTx
 import           PlutusTx.Prelude hiding (Semigroup (..), unless)
-import qualified PlutusTx.Builtins as Builtins
-import qualified Plutus.V1.Ledger.Scripts as Plutus 
-
 import Plutus.V1.Ledger.Api
 import Plutus.V1.Ledger.Value
-import Ledger.Address 
-import Plutus.V1.Ledger.Time 
-import Plutus.V1.Ledger.Scripts
-
 import           Ledger hiding (mint, singleton)
-import           Ledger.Constraints as Constraints
-import qualified Ledger.Typed.Scripts as Scripts -- Plutus.Script.Utils.V2.Scripts
-import           Ledger.Value as Value
-import           Ledger.Ada           as Ada
-
-import           Playground.Contract (printJson, printSchemas, ensureKnownCurrencies, stage, ToSchema, ToArgument)
-import           Playground.TH (mkKnownCurrencies, mkSchemaDefinitions)
-import           Playground.Types (KnownCurrency (..))
-
+import qualified Ledger.Typed.Scripts as Scripts 
 import           Prelude (IO, Show (..), String, (<>))
 
-import           Text.Printf (printf)
-import           Wallet.Emulator.Wallet 
+import qualified Common.Utils as U 
+import           ThreadToken as Thread 
 
-import qualified Common.Utils as U --import Utils module from the common dir
-import qualified Common.Random as Random 
-import           Common.NFTs as NFTs
-import           RequestMint as Req
-import           PlutusTx.Builtins.Class as Class
+----------------------------
+-- MintingPolicy On-Chain --
+----------------------------
 
 data MintDatum = MintDatum 
                 { metadata :: !BuiltinByteString
@@ -65,28 +40,42 @@ data MintDatum = MintDatum
 
 PlutusTx.makeIsDataIndexed ''MintDatum [('MintDatum, 0)]
 
+data MintInfo = MintInfo
+                { tSymbol :: !CurrencySymbol
+                } deriving (Show, Generic, ToJSON, FromJSON)
 
+PlutusTx.makeLift ''MintInfo 
+PlutusTx.makeIsDataIndexed ''MintInfo [('MintInfo, 0)]
 
-mkTokenPolicy :: () -> ScriptContext -> Bool
-mkTokenPolicy _ ctx = validate -- Change to Redeemer == Datum Hash && must contain Validator in TxOut
+mintInfo :: MintInfo
+mintInfo = MintInfo {tSymbol = Thread.threadSymbol}
+
+mkTokenPolicy :: MintInfo -> () -> ScriptContext -> Bool
+mkTokenPolicy mintInfo _ ctx = traceIfFalse "MintValidation Failed" (validate ctx) 
     where 
-        validate :: Bool
-        validate = --True
-            -- containsValidator && 
-            -- validateRecipients &&
-            validateTxOuts -- currently only validates txOut is to A SCRIPT not anything in particular
+        validate :: ScriptContext -> Bool
+        validate ctx = 
+            validateTxOuts -- currently only validates txOut is to A SCRIPT & Contains Thread Token
 
         validateTxOuts :: Bool
         validateTxOuts = any txOutValidate (txInfoOutputs $ U.info ctx)
 
         txOutValidate :: TxOut -> Bool
-        txOutValidate txo = isPayToScriptOut txo
+        txOutValidate txo = 
+            isPayToScriptOut txo &&
+            checkOutput txo
+
+        checkOutput :: TxOut -> Bool
+        checkOutput txo = let   flatValue = flattenValue (txOutValue txo) in 
+                                valueOf (txOutValue txo) (tSymbol mintInfo) (TokenName "Thread") == 1 
 
 mintPolicy :: Scripts.MintingPolicy
-mintPolicy = mkMintingPolicyScript
-    $$(PlutusTx.compile [|| Scripts.wrapMintingPolicy mkTokenPolicy ||])
-    --`PlutusTx.applyCode`
-    --PlutusTx.liftCode dat
+mintPolicy = mkMintingPolicyScript $
+    $$(PlutusTx.compile [|| wrap ||])
+    `PlutusTx.applyCode`
+    PlutusTx.liftCode mintInfo
+    where
+        wrap mintInfo = Scripts.wrapMintingPolicy $ mkTokenPolicy mintInfo
 
 plutusScript :: Script 
 plutusScript = unMintingPolicyScript mintPolicy 

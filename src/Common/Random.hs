@@ -4,11 +4,9 @@ import System.Random
 import Data.List 
 import Common.NFTs
 
-
--- Unused - Token info in NFTs.hs
-
--- nfts :: [(String, String)]
--- nfts = [("STK0001","STK0001.json"),("STK0002","STK0002.json"),("STK0003","STK0003.json"),("STK0004","STK0004.json"),("STK0005","STK0005.json")]
+------------------------------
+-- Random NFT Picking Logic --
+------------------------------
 
 randomVal :: [(a, a)] -> Int
 randomVal xs = fst $ random (mkStdGen (length xs))
@@ -62,7 +60,7 @@ mint :: [(String, String)] -> IO ()
 mint xs = do
     putStrLn $ show (mintNFT xs)
     -- putStrLn $ show (configMint xs) -- For verification of reordering list
-    -- putStrLn $ show (tail (configMint xs)) to confirm dropping head of the list (adjusting state)
+    -- putStrLn $ show (tail (configMint xs)) -- to confirm dropping head of the list (adjusting state)
     select (dropNFT xs)
 
 singleMint :: [(String, String)] -> IO ()
